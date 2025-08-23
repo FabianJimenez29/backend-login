@@ -1,20 +1,11 @@
 {
   "name": "backend-login",
   "version": "1.0.0",
-  "description": "Backend con Supabase y Vercel",
-  "main": "index.js",
   "type": "module",
-  "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
-  },
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0",
-    "@supabase/supabase-js": "^2.39.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.0"
+    "jsonwebtoken": "^9.0.0"
   },
   "engines": {
     "node": "18.x"

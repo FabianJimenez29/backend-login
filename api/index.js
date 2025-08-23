@@ -1,21 +1,18 @@
 export default function handler(req, res) {
-  // Configurar CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
-  res.status(200).json({ 
+  return res.status(200).json({ 
     message: "Backend con Supabase funcionando 🚀", 
     status: "OK",
     timestamp: new Date().toISOString(),
-    endpoints: {
-      register: "/api/register",
-      login: "/api/login"
-    }
+    method: req.method,
+    url: req.url
   });
 }

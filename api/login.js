@@ -1,20 +1,14 @@
-
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
-  // Configurar CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== "POST") {
@@ -22,13 +16,42 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log("🔐 Intento de login:", req.body);
+    console.log("🔐 Intento de login");
+    console.log("Raw body:", req.body);
     
-    const { email, password } = req.body;
+    // Verificar variables de entorno
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+      console.error("❌ Faltan variables de entorno de Supabase");
+      return res.status(500).json({ error: "Error de configuración del servidor" });
+    }
+
+    // Parsear el body si es necesario
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        return res.status(400).json({ error: "JSON inválido" });
+      }
+    }
+
+    if (!body) {
+      return res.status(400).json({ error: "Body requerido" });
+    }
+
+    const { email, password } = body;
+    console.log("📧 Email:", email);
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Por favor completa todos los campos" });
+      return res.status(400).json({ 
+        error: "Por favor completa todos los campos",
+        received: Object.keys(body)
+      });
     }
+
+    // Importar Supabase dinámicamente
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
     // Buscar el usuario por email
     const { data: user, error } = await supabase
@@ -38,7 +61,7 @@ export default async function handler(req, res) {
       .single();
 
     if (error || !user) {
-      console.log("❌ Usuario no encontrado:", email);
+      console.log("❌ Usuario no encontrado:", email, error);
       return res.status(400).json({ error: "Credenciales incorrectas" });
     }
 
@@ -61,7 +84,7 @@ export default async function handler(req, res) {
     console.log("✅ Login exitoso:", user.email);
 
     // Devolver datos del usuario (sin la contraseña)
-    res.status(200).json({
+    return res.status(200).json({
       message: "Login exitoso",
       token,
       user: {
@@ -77,6 +100,10 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("❌ Error en login:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    return res.status(500).json({ 
+      error: "Error interno del servidor",
+      details: error.message,
+      stack: error.stack
+    });
   }
 }

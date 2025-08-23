@@ -1,20 +1,14 @@
-
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
-  // Configurar CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== "POST") {
@@ -22,23 +16,65 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log("📝 Intento de registro:", req.body);
+    console.log("📝 Intento de registro");
+    console.log("Raw body:", req.body);
     
-    const { fullName, email, phone, password, provincia, canton, distrito } = req.body;
+    // Verificar variables de entorno
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+      console.error("❌ Faltan variables de entorno de Supabase");
+      return res.status(500).json({ error: "Error de configuración del servidor" });
+    }
+
+    // Parsear el body si es necesario
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        return res.status(400).json({ error: "JSON inválido" });
+      }
+    }
+
+    if (!body) {
+      return res.status(400).json({ error: "Body requerido" });
+    }
+
+    const { fullName, email, phone, password, provincia, canton, distrito } = body;
+    console.log("📧 Registrando:", email);
+    console.log("Datos recibidos:", { fullName, email, phone, provincia, canton, distrito });
 
     if (!fullName || !email || !password || !phone || !provincia || !canton || !distrito) {
       return res.status(400).json({ 
         error: "Por favor completa todos los campos",
-        received: Object.keys(req.body)
+        received: Object.keys(body),
+        missing: {
+          fullName: !fullName,
+          email: !email,
+          password: !password,
+          phone: !phone,
+          provincia: !provincia,
+          canton: !canton,
+          distrito: !distrito
+        }
       });
     }
 
+    // Importar Supabase dinámicamente
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
     // Verificar si el usuario ya existe
-    const { data: existingUser } = await supabase
+    const { data: existingUser, error: checkError } = await supabase
       .from("users")
       .select("email")
       .eq("email", email)
       .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned (usuario no existe, que es lo que queremos)
+      console.error("❌ Error verificando usuario existente:", checkError);
+      return res.status(500).json({ error: "Error verificando usuario" });
+    }
 
     if (existingUser) {
       return res.status(400).json({ error: "El email ya está registrado" });
@@ -75,7 +111,7 @@ export default async function handler(req, res) {
 
     console.log("✅ Usuario registrado:", data[0].email);
 
-    res.status(201).json({ 
+    return res.status(201).json({ 
       message: "Usuario registrado correctamente",
       token,
       user: {
@@ -91,6 +127,10 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("❌ Error en registro:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    return res.status(500).json({ 
+      error: "Error interno del servidor",
+      details: error.message,
+      stack: error.stack
+    });
   }
 }

@@ -61,13 +61,12 @@ export default async function handler(req, res) {
       console.log('PATCH request recibido para id:', id);
       console.log('Body:', req.body);
       
-      const { status, tecnico, observaciones, checklist_data } = req.body;
+      const { status, tecnico, observaciones } = req.body;
       
       const updateData = {};
       if (status) updateData.status = status;
       if (tecnico) updateData.tecnico = tecnico;
       if (observaciones) updateData.observaciones = observaciones;
-      if (checklist_data) updateData.checklist_data = checklist_data;
       
       console.log('Datos a actualizar:', updateData);
       

@@ -16,11 +16,45 @@ export default async function handler(req, res) {
     .lt('date', new Date().toISOString().slice(0, 10));
 
   if (req.method === 'POST') {
-    const { clientName, service, time, date } = req.body;
+    const {
+      clientName,
+      clientEmail,
+      clientPhone,
+      clientProvincia,
+      clientCanton,
+      clientDistrito,
+      sucursal,
+      servicio,
+      fecha,
+      hora,
+      tipo_placa,
+      numero_placa,
+      marca,
+      modelo,
+      problema
+    } = req.body;
+
     const { data, error } = await supabase
       .from('quotes')
-      .insert([{ client_name: clientName, service, time, date }])
+      .insert([{
+        client_name: clientName,
+        client_email: clientEmail,
+        client_phone: clientPhone,
+        client_provincia: clientProvincia,
+        client_canton: clientCanton,
+        client_distrito: clientDistrito,
+        sucursal,
+        servicio,
+        fecha,
+        hora,
+        tipo_placa,
+        numero_placa,
+        marca,
+        modelo,
+        problema
+      }])
       .select();
+
     if (error) return res.status(400).json({ error: error.message });
     return res.status(201).json({ quote: data[0] });
   }

@@ -34,6 +34,19 @@ export default async function handler(req, res) {
       problema
     } = req.body;
 
+    // Verificamos si hay campos obligatorios vacíos
+    if (!clientName || !clientEmail || !clientPhone || !sucursal) {
+      return res.status(400).json({
+        error: "Campos obligatorios faltantes",
+        missing: {
+          clientName: !clientName,
+          clientEmail: !clientEmail,
+          clientPhone: !clientPhone,
+          sucursal: !sucursal
+        }
+      });
+    }
+
     const { data, error } = await supabase
       .from('quotes')
       .insert([{

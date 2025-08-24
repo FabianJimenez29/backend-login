@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   await supabase
     .from('quotes')
     .delete()
-    .lt('date', new Date().toISOString().slice(0, 10));
+    .lt('fecha', new Date().toISOString().slice(0, 10));
 
   if (req.method === 'POST') {
     const {

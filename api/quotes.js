@@ -79,8 +79,22 @@ export default async function handler(req, res) {
       .select('*')
       .eq('fecha', date)
       .order('hora', { ascending: true });
+      
     if (error) return res.status(400).json({ error: error.message });
-    return res.status(200).json({ quotes: data });
+    
+    // Formatear los datos para que coincidan con la estructura esperada por el frontend
+    const formattedData = data.map(quote => ({
+      ...quote,
+      // Añadir propiedades en camelCase para compatibilidad con el frontend
+      clientName: quote.client_name,
+      clientEmail: quote.client_email,
+      clientPhone: quote.client_phone,
+      clientProvincia: quote.client_provincia,
+      clientCanton: quote.client_canton,
+      clientDistrito: quote.client_distrito
+    }));
+    
+    return res.status(200).json({ quotes: formattedData });
   }
 
   return res.status(405).json({ error: 'Método no permitido' });

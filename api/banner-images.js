@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Configuración de Supabase
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+
+// Crear cliente de Supabase
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
   // Headers CORS
@@ -19,19 +23,43 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Obtener la lista de imágenes del bucket "banner-images"
+    // Definimos el nombre del bucket de imágenes para banner
+    const bucketName = 'banner-images';
+    
+    // Verificamos que el bucket exista y tenemos acceso
+    const { error: checkError } = await supabase
+      .storage
+      .from(bucketName)
+      .list('', { limit: 1 });
+    
+    if (checkError) {
+      return res.status(200).json({
+        success: false,
+        error: `No se pudo acceder al bucket "${bucketName}"`,
+        details: checkError.message,
+        message: 'Verifica las políticas de acceso en Supabase para este bucket',
+        bannerImages: [
+          // Imágenes de respaldo para mantener la app funcionando
+          { name: 'placeholder-banner1.jpg', url: 'https://via.placeholder.com/1200x400/007BFF/FFFFFF/?text=Banner+1' },
+          { name: 'placeholder-banner2.jpg', url: 'https://via.placeholder.com/1200x400/28A745/FFFFFF/?text=Banner+2' },
+          { name: 'placeholder-banner3.jpg', url: 'https://via.placeholder.com/1200x400/DC3545/FFFFFF/?text=Banner+3' }
+        ]
+      });
+    }
+    
+    // Listar las imágenes del bucket
     const { data, error } = await supabase
       .storage
-      .from('banner-images')
+      .from(bucketName)
       .list('', {
         sortBy: { column: 'name', order: 'asc' }
       });
 
     if (error) {
-      console.error('Error al obtener la lista de imágenes:', error);
       return res.status(500).json({ 
         success: false,
-        error: 'Error al obtener imágenes del banner' 
+        error: 'Error al obtener imágenes del banner',
+        details: error.message
       });
     }
 
@@ -45,7 +73,7 @@ export default async function handler(req, res) {
       imageFiles.map(async (file) => {
         const { data: publicUrl } = supabase
           .storage
-          .from('banner-images')
+          .from(bucketName) // Usamos el nombre exacto del bucket
           .getPublicUrl(file.name);
 
         return {
@@ -60,7 +88,6 @@ export default async function handler(req, res) {
       bannerImages: imageUrls
     });
   } catch (error) {
-    console.error('Error inesperado:', error);
     return res.status(500).json({ 
       success: false,
       error: 'Error interno del servidor',

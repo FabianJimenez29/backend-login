@@ -4,11 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://bazixgggnwpswkxwaete.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJheml4Z2dnbndwc3dreHdhZXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5NjEzODEsImV4cCI6MjA3MTUzNzM4MX0.VwA5elZYp_YreG7oo68eaf83UaNhtwQMTugAd8D9cTo';
 
-// Imprimir valores para debug
-console.log('SUPABASE_URL utilizado:', SUPABASE_URL);
-console.log('SUPABASE_KEY (primeros 10 caracteres):', SUPABASE_KEY.substring(0, 10) + '...');
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Crear cliente de Supabase de manera segura
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: false }
+});
 
 export default async function handler(req, res) {
   // Headers CORS

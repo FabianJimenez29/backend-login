@@ -25,28 +25,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Verificar que la conexión a Supabase es válida
-    try {
-      // Test básico de la API de Supabase - intentar obtener la hora actual
-      const { data: healthCheck, error: healthError } = await supabase.rpc('hello_world', {});
-      
-      if (healthError) {
-        console.error('Error de conexión a Supabase:', healthError);
-        return res.status(500).json({
-          error: 'Error de conexión a Supabase',
-          details: healthError.message,
-          supabaseInfo: {
-            url: SUPABASE_URL,
-            keyLength: SUPABASE_KEY ? SUPABASE_KEY.length : 0,
-            keyStart: SUPABASE_KEY ? SUPABASE_KEY.substring(0, 10) + '...' : 'undefined'
-          }
-        });
-      }
-      
-      console.log('Conexión a Supabase exitosa:', healthCheck || 'OK');
-    } catch (connectionError) {
-      console.error('Error al verificar conexión:', connectionError);
-    }
+    // Verificamos directamente si podemos listar buckets como prueba de conexión
+    // sin llamar a una función personalizada que podría no existir
 
     console.log('Intentando listar buckets en Supabase...');
     

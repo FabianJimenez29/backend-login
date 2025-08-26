@@ -15,24 +15,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Verificar autenticación
+    // Verificar autenticación - Solo verificamos si hay token, pero no lo requerimos
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: "No autorizado" });
-    }
-
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ error: "No autorizado" });
-    }
-
-    // Verificar token
-    const JWT_SECRET = process.env.JWT_SECRET || "superclave123";
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET);
-    } catch (e) {
-      return res.status(401).json({ error: "Token inválido" });
+    let userId = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      if (token) {
+        // Verificar token
+        const JWT_SECRET = process.env.JWT_SECRET || "superclave123";
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET);
+          userId = decoded.id;
+          console.log("Usuario autenticado:", decoded);
+        } catch (e) {
+          console.log("Token inválido, continuando como acceso público");
+        }
+      }
     }
 
     // Importar Supabase dinámicamente

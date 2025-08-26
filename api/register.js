@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -39,9 +39,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Body requerido" });
     }
 
-    const { fullName, email, phone, password, provincia, canton, distrito } = body;
+    const { fullName, email, phone, password, provincia, canton, distrito, role } = body;
     console.log("📧 Registrando:", email);
-    console.log("Datos recibidos:", { fullName, email, phone, provincia, canton, distrito });
+    console.log("Datos recibidos:", { fullName, email, phone, provincia, canton, distrito, role });
 
     if (!fullName || !email || !password || !phone || !provincia || !canton || !distrito) {
       return res.status(400).json({ 
@@ -92,7 +92,8 @@ export default async function handler(req, res) {
         password_hash,
         provincia,
         canton,
-        distrito
+        distrito,
+        role: role || 'user' // Usar el rol proporcionado o 'user' por defecto
       }])
       .select();
 
@@ -121,7 +122,8 @@ export default async function handler(req, res) {
         phone: data[0].phone,
         provincia: data[0].provincia,
         canton: data[0].canton,
-        distrito: data[0].distrito
+        distrito: data[0].distrito,
+        role: data[0].role || 'user'
       }
     });
 

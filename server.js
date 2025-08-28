@@ -96,18 +96,133 @@ app.get('/', (req, res) => {
   });
 });
 
+// Configuración para el manejo de archivos con multer
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
+
+// Configurar almacenamiento temporal para multer
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB límite
+  fileFilter: function (req, file, cb) {
+    // Validar tipos de archivos (solo imágenes)
+    const filetypes = /jpeg|jpg|png|gif|webp/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'));
+  }
+});
+
 // Ruta para subir imágenes de productos
-app.post('/api/products/upload-image', (req, res) => {
+app.post('/api/products/upload-image', upload.single('image'), async (req, res) => {
+  // Establecer los headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Para solicitudes OPTIONS, simplemente responder con OK
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   try {
-    // En un entorno real, aquí se configuraría multer para manejar la subida de imágenes
-    // Por ahora, simplemente simulamos el comportamiento
-    res.json({
-      url: `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`,
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se ha proporcionado ninguna imagen' });
+    }
+
+    console.log('Procesando imagen:', req.file.originalname);
+    
+    const file = req.file;
+    const fileExt = path.extname(file.originalname);
+    const fileName = `${uuidv4()}${fileExt}`;
+    const filePath = `products/${fileName}`;
+    
+    console.log('Subiendo a Supabase bucket "images", ruta:', filePath);
+    console.log('Supabase URL:', process.env.SUPABASE_URL);
+    
+    // Subir archivo a Supabase Storage
+    const { data, error } = await supabase
+      .storage
+      .from('images') // Nombre del bucket en Supabase
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true // Usar upsert para sobrescribir si existe
+      });
+    
+    if (error) {
+      console.error('Error al subir a Supabase:', error);
+      return res.status(500).json({ error: `Error al subir imagen a Supabase: ${error.message}` });
+    }
+    
+    console.log('Imagen subida exitosamente, obteniendo URL pública');
+    
+    // Obtener URL pública del archivo subido
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('images')
+      .getPublicUrl(filePath);
+    
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+      console.error('No se pudo obtener URL pública');
+      return res.status(500).json({ error: 'Error al obtener URL pública de la imagen' });
+    }
+    
+    console.log('URL pública obtenida:', publicUrlData.publicUrl);
+    
+    return res.status(200).json({
+      url: publicUrlData.publicUrl,
+      path: filePath,
       message: 'Imagen subida correctamente'
     });
   } catch (error) {
-    console.error('Error al subir imagen:', error);
-    res.status(500).json({ error: 'Error al procesar la imagen' });
+    console.error('Error al procesar la imagen:', error);
+    return res.status(500).json({ error: `Error al procesar la imagen: ${error.message}` });
+  }
+});
+
+// Ruta para eliminar una imagen de producto
+app.delete('/api/products/delete-image', async (req, res) => {
+  // Headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  try {
+    const { path } = req.body;
+    
+    if (!path) {
+      return res.status(400).json({ error: 'Ruta de archivo no proporcionada' });
+    }
+    
+    console.log('Eliminando imagen:', path);
+    
+    // Eliminar archivo de Supabase Storage
+    const { error } = await supabase
+      .storage
+      .from('images')
+      .remove([path]);
+    
+    if (error) {
+      console.error('Error al eliminar imagen de Supabase:', error);
+      return res.status(500).json({ error: `Error al eliminar imagen: ${error.message}` });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Imagen eliminada correctamente'
+    });
+  } catch (error) {
+    console.error('Error al eliminar imagen:', error);
+    return res.status(500).json({ error: `Error al eliminar imagen: ${error.message}` });
   }
 });
 

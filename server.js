@@ -13,6 +13,7 @@ import availabilityRouter from './api/availability.js';
 import promotionsRouter from './api/promotions.js';
 import bannerImagesRouter from './api/banner-images.js';
 import productsHandler from './api/products.js';
+import categoriesHandler from './api/categories.js';
 
 // Configuración de ES Modules para __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -48,7 +49,7 @@ app.use((req, res, next) => {
 // Inicialización del cliente de Supabase
 export const supabase = createClient(
   process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_ANON_KEY || ''
+  process.env.SUPABASE_KEY || ''
 );
 
 // Rutas principales
@@ -63,273 +64,10 @@ app.use('/api/banner-images', bannerImagesRouter);
 // Ruta de productos usando el handler de Supabase
 app.use('/api/products', (req, res) => productsHandler(req, res));
 
-// Datos de muestra para productos y categorías
-// Implementación básica para demo
-app.get('/api/products', (req, res) => {
-  const products = [
-    {
-      id: '1',
-      name: 'Smartphone XYZ',
-      description: 'Último modelo con cámara avanzada',
-      price: 599.99,
-      stock: 50,
-      category_id: '1',
-      image_url: 'https://picsum.photos/id/10/300/300',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: '2',
-      name: 'Laptop Profesional',
-      description: 'Potente laptop para trabajo y gaming',
-      price: 1299.99,
-      stock: 25,
-      category_id: '1',
-      image_url: 'https://picsum.photos/id/20/300/300',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: '3',
-      name: 'Sofa Moderno',
-      description: 'Sofá de 3 plazas en color gris',
-      price: 799.50,
-      stock: 10,
-      category_id: '2',
-      image_url: 'https://picsum.photos/id/30/300/300',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: '4',
-      name: 'Camiseta Deportiva',
-      description: 'Material transpirable para mayor comodidad',
-      price: 29.99,
-      stock: 100,
-      category_id: '3',
-      image_url: 'https://picsum.photos/id/40/300/300',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: '5',
-      name: 'Balón de Fútbol',
-      description: 'Balón de competición profesional',
-      price: 49.95,
-      stock: 75,
-      category_id: '4',
-      image_url: 'https://picsum.photos/id/50/300/300',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
-  
-  const { category_id } = req.query;
-  
-  // Filtrar por categoría si es necesario
-  if (category_id) {
-    const filteredProducts = products.filter(p => p.category_id === category_id);
-    return res.json(filteredProducts);
-  }
-  
-  res.json(products);
-});
+// Ruta de categorías usando el handler de Supabase
+app.use('/api/categories', (req, res) => categoriesHandler(req, res));
 
-app.get('/api/products/:id', (req, res) => {
-  const { id } = req.params;
-  const products = [
-    {
-      id: '1',
-      name: 'Smartphone XYZ',
-      description: 'Último modelo con cámara avanzada',
-      price: 599.99,
-      stock: 50,
-      category_id: '1',
-      image_url: 'https://picsum.photos/id/10/300/300',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    // ... otros productos
-  ];
-  
-  const product = products.find(p => p.id === id);
-  
-  if (!product) {
-    return res.status(404).json({ message: 'Producto no encontrado' });
-  }
-  
-  res.json(product);
-});
-
-app.post('/api/products', (req, res) => {
-  const { name, description, price, stock, category_id, image_url } = req.body;
-  
-  if (!name || !price) {
-    return res.status(400).json({ message: 'Nombre y precio son requeridos' });
-  }
-  
-  const newProduct = {
-    id: Date.now().toString(),
-    name,
-    description: description || '',
-    price: parseFloat(price),
-    stock: parseInt(stock) || 0,
-    category_id,
-    image_url: image_url || 'https://picsum.photos/id/99/300/300',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-  
-  res.status(201).json(newProduct);
-});
-
-app.put('/api/products/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, description, price, stock, category_id, image_url } = req.body;
-  
-  if (!name || !price) {
-    return res.status(400).json({ message: 'Nombre y precio son requeridos' });
-  }
-  
-  const updatedProduct = {
-    id,
-    name,
-    description: description || '',
-    price: parseFloat(price),
-    stock: parseInt(stock) || 0,
-    category_id,
-    image_url: image_url || 'https://picsum.photos/id/99/300/300',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-  
-  res.json(updatedProduct);
-});
-
-app.delete('/api/products/:id', (req, res) => {
-  const { id } = req.params;
-  res.json({ 
-    message: 'Producto eliminado correctamente',
-    product: {
-      id,
-      name: 'Producto eliminado'
-    }
-  });
-});
-
-// Rutas para categorías
-app.get('/api/categories', (req, res) => {
-  const categories = [
-    {
-      id: '1',
-      name: 'Electrónica',
-      description: 'Productos electrónicos como smartphones, tablets y laptops',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      product_count: 2
-    },
-    {
-      id: '2',
-      name: 'Hogar',
-      description: 'Artículos para el hogar y decoración',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      product_count: 1
-    },
-    {
-      id: '3',
-      name: 'Moda',
-      description: 'Ropa y accesorios de moda',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      product_count: 1
-    },
-    {
-      id: '4',
-      name: 'Deportes',
-      description: 'Artículos deportivos y fitness',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      product_count: 1
-    }
-  ];
-  
-  res.json(categories);
-});
-
-app.get('/api/categories/:id', (req, res) => {
-  const { id } = req.params;
-  const categories = [
-    {
-      id: '1',
-      name: 'Electrónica',
-      description: 'Productos electrónicos como smartphones, tablets y laptops',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      product_count: 2
-    },
-    // ... otras categorías
-  ];
-  
-  const category = categories.find(c => c.id === id);
-  
-  if (!category) {
-    return res.status(404).json({ message: 'Categoría no encontrada' });
-  }
-  
-  res.json(category);
-});
-
-app.post('/api/categories', (req, res) => {
-  const { name, description } = req.body;
-  
-  if (!name) {
-    return res.status(400).json({ message: 'El nombre es requerido' });
-  }
-  
-  const newCategory = {
-    id: Date.now().toString(),
-    name,
-    description: description || '',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    product_count: 0
-  };
-  
-  res.status(201).json(newCategory);
-});
-
-app.put('/api/categories/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, description } = req.body;
-  
-  if (!name) {
-    return res.status(400).json({ message: 'El nombre es requerido' });
-  }
-  
-  const updatedCategory = {
-    id,
-    name,
-    description: description || '',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    product_count: 2
-  };
-  
-  res.json(updatedCategory);
-});
-
-app.delete('/api/categories/:id', (req, res) => {
-  const { id } = req.params;
-  res.json({ 
-    message: 'Categoría eliminada correctamente',
-    category: {
-      id,
-      name: 'Categoría eliminada',
-      description: ''
-    }
-  });
-});
+// Nota: Los endpoints de productos y categorías ahora son manejados por sus respectivos handlers usando Supabase
 
 // Carpeta para archivos estáticos
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -359,13 +97,18 @@ app.get('/', (req, res) => {
 });
 
 // Ruta para subir imágenes de productos
-app.post('/api/products/upload', (req, res) => {
-  // Esta es una versión simulada ya que no tenemos multer configurado en este script
-  res.json({
-    message: 'Imagen subida correctamente',
-    url: 'https://picsum.photos/id/100/300/300',
-    filename: `upload-${Date.now()}.jpg`
-  });
+app.post('/api/products/upload-image', (req, res) => {
+  try {
+    // En un entorno real, aquí se configuraría multer para manejar la subida de imágenes
+    // Por ahora, simplemente simulamos el comportamiento
+    res.json({
+      url: `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`,
+      message: 'Imagen subida correctamente'
+    });
+  } catch (error) {
+    console.error('Error al subir imagen:', error);
+    res.status(500).json({ error: 'Error al procesar la imagen' });
+  }
 });
 
 // Manejador de rutas no encontradas

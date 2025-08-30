@@ -1,12 +1,16 @@
 export function corsMiddleware(req, res, next) {
-  const allowedOrigins = ['http://localhost:3000', 'https://admin-panel-tawny-seven.vercel.app'];
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://admin-panel-tawny-seven.vercel.app',
+    'https://admin-panel-three-lilac.vercel.app'
+  ];
   const origin = req.headers.origin;
 
   // Always set CORS headers
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
   }
 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

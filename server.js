@@ -72,7 +72,18 @@ app.delete('/api/products/:id', (req, res) => {
   productsHandler(req, res);
 });
 app.options('/api/products*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://admin-panel-tawny-seven.vercel.app',
+    'https://admin-panel-three-lilac.vercel.app'
+  ];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -92,7 +103,18 @@ app.delete('/api/categories/:id', (req, res) => {
   categoriesHandler(req, res);
 });
 app.options('/api/categories*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://admin-panel-tawny-seven.vercel.app',
+    'https://admin-panel-three-lilac.vercel.app'
+  ];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -152,8 +174,19 @@ const upload = multer({
 
 // Ruta para subir imágenes de productos
 app.post('/api/products/upload-image', upload.single('image'), async (req, res) => {
-  // Establecer los headers CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Usar los headers CORS del middleware
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://admin-panel-tawny-seven.vercel.app',
+    'https://admin-panel-three-lilac.vercel.app'
+  ];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
@@ -219,8 +252,19 @@ app.post('/api/products/upload-image', upload.single('image'), async (req, res) 
 
 // Ruta para eliminar una imagen de producto
 app.delete('/api/products/delete-image', async (req, res) => {
-  // Headers CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Usar los headers CORS del middleware
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://admin-panel-tawny-seven.vercel.app',
+    'https://admin-panel-three-lilac.vercel.app'
+  ];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   

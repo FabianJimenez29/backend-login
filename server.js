@@ -177,16 +177,21 @@ app.post('/api/products/upload-image', upload.single('image'), async (req, res) 
   // Usar los headers CORS del middleware
   const origin = req.headers.origin;
   const allowedOrigins = [
-    'https://admin-panel-three-lilac.vercel.app'
+    'http://localhost:3000',
+    'https://admin-panel-three-lilac.vercel.app',
+    'https://admin-panel-tawny-seven.vercel.app'
   ];
   
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (process.env.NODE_ENV === 'development') {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
   } else {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+    res.setHeader('Access-Control-Allow-Origin', 'https://admin-panel-three-lilac.vercel.app');
   }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   // Para solicitudes OPTIONS, simplemente responder con OK
   if (req.method === 'OPTIONS') {
@@ -253,16 +258,21 @@ app.delete('/api/products/delete-image', async (req, res) => {
   // Usar los headers CORS del middleware
   const origin = req.headers.origin;
   const allowedOrigins = [
-    'https://admin-panel-three-lilac.vercel.app'
+    'http://localhost:3000',
+    'https://admin-panel-three-lilac.vercel.app',
+    'https://admin-panel-tawny-seven.vercel.app'
   ];
   
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (process.env.NODE_ENV === 'development') {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
   } else {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+    res.setHeader('Access-Control-Allow-Origin', 'https://admin-panel-three-lilac.vercel.app');
   }
-  res.setHeader('Access-Control-Allow-Methods', 'DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();

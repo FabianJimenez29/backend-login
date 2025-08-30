@@ -71,24 +71,7 @@ app.delete('/api/products/:id', (req, res) => {
   req.query.id = req.params.id;
   productsHandler(req, res);
 });
-app.options('/api/products*', (req, res) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://admin-panel-tawny-seven.vercel.app',
-    'https://admin-panel-three-lilac.vercel.app'
-  ];
-  
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.status(200).end();
-});
+app.options('/api/products*', (req, res) => res.status(200).end());
 
 // Ruta de categorías usando el handler de Supabase
 // Rutas explícitas para categorías
@@ -102,24 +85,7 @@ app.delete('/api/categories/:id', (req, res) => {
   req.query.id = req.params.id;
   categoriesHandler(req, res);
 });
-app.options('/api/categories*', (req, res) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://admin-panel-tawny-seven.vercel.app',
-    'https://admin-panel-three-lilac.vercel.app'
-  ];
-  
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.status(200).end();
-});
+app.options('/api/categories*', (req, res) => res.status(200).end());
 
 // Nota: Los endpoints de productos y categorías ahora son manejados por sus respectivos handlers usando Supabase
 
@@ -174,20 +140,9 @@ const upload = multer({
 
 // Ruta para subir imágenes de productos
 app.post('/api/products/upload-image', upload.single('image'), async (req, res) => {
-  // Usar los headers CORS del middleware
   const origin = req.headers.origin;
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://admin-panel-three-lilac.vercel.app',
-    'https://admin-panel-tawny-seven.vercel.app'
-  ];
-  
-  if (allowedOrigins.includes(origin)) {
+  if (origin === 'https://admin-panel-three-lilac.vercel.app') {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (process.env.NODE_ENV === 'development') {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', 'https://admin-panel-three-lilac.vercel.app');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
@@ -255,20 +210,9 @@ app.post('/api/products/upload-image', upload.single('image'), async (req, res) 
 
 // Ruta para eliminar una imagen de producto
 app.delete('/api/products/delete-image', async (req, res) => {
-  // Usar los headers CORS del middleware
   const origin = req.headers.origin;
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://admin-panel-three-lilac.vercel.app',
-    'https://admin-panel-tawny-seven.vercel.app'
-  ];
-  
-  if (allowedOrigins.includes(origin)) {
+  if (origin === 'https://admin-panel-three-lilac.vercel.app') {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (process.env.NODE_ENV === 'development') {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', 'https://admin-panel-three-lilac.vercel.app');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');

@@ -1,11 +1,17 @@
 // Configuración simplificada de CORS
 export function corsMiddleware(req, res, next) {
-  const allowedOrigin = 'https://admin-panel-three-lilac.vercel.app';
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://admin-panel-three-lilac.vercel.app',
+    'https://admin-panel-tawny-seven.vercel.app'
+  ];
   const origin = req.headers.origin;
 
-  // Solo permitir el origen de Vercel
-  if (origin === allowedOrigin) {
+  // Permitir el origen si está en la lista o usar el primero como fallback
+  if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[1]); // Usar el de producción como fallback
   }
 
   // Configuración común para todos los endpoints

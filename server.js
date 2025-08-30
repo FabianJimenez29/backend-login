@@ -28,10 +28,20 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://admin-panel-tawny-seven.vercel.app'],
+  origin: function (origin, callback) {
+    const allowedOrigins = ['http://localhost:3000', 'https://admin-panel-tawny-seven.vercel.app'];
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -62,10 +72,60 @@ app.use('/api/promotions', promotionsRouter);
 app.use('/api/banner-images', bannerImagesRouter);
 
 // Ruta de productos usando el handler de Supabase
-app.use('/api/products', (req, res) => productsHandler(req, res));
+app.use('/api/products', (req, res, next) => {
+  // Establecer headers CORS específicos para productos
+  const allowedOrigins = ['http://localhost:3000', 'https://admin-panel-tawny-seven.vercel.app'];
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Manejar preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  // Para peticiones DELETE con ID, asegurar que el parámetro se pase correctamente
+  if (req.method === 'DELETE' && req.path !== '/') {
+    const pathParts = req.path.split('/');
+    if (pathParts.length > 1 && pathParts[1]) {
+      req.query.id = pathParts[1];
+    }
+  }
+  
+  return productsHandler(req, res);
+});
 
 // Ruta de categorías usando el handler de Supabase
-app.use('/api/categories', (req, res) => categoriesHandler(req, res));
+app.use('/api/categories', (req, res, next) => {
+  // Establecer headers CORS específicos para categorías
+  const allowedOrigins = ['http://localhost:3000', 'https://admin-panel-tawny-seven.vercel.app'];
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Manejar preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  return categoriesHandler(req, res);
+});
 
 // Nota: Los endpoints de productos y categorías ahora son manejados por sus respectivos handlers usando Supabase
 

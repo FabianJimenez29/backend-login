@@ -177,8 +177,6 @@ app.post('/api/products/upload-image', upload.single('image'), async (req, res) 
   // Usar los headers CORS del middleware
   const origin = req.headers.origin;
   const allowedOrigins = [
-    'http://localhost:3000',
-    'https://admin-panel-tawny-seven.vercel.app',
     'https://admin-panel-three-lilac.vercel.app'
   ];
   
@@ -255,8 +253,6 @@ app.delete('/api/products/delete-image', async (req, res) => {
   // Usar los headers CORS del middleware
   const origin = req.headers.origin;
   const allowedOrigins = [
-    'http://localhost:3000',
-    'https://admin-panel-tawny-seven.vercel.app',
     'https://admin-panel-three-lilac.vercel.app'
   ];
   

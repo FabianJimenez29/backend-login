@@ -1,7 +1,5 @@
 export function corsMiddleware(req, res, next) {
   const allowedOrigins = [
-    'http://localhost:3000',
-    'https://admin-panel-tawny-seven.vercel.app',
     'https://admin-panel-three-lilac.vercel.app'
   ];
   const origin = req.headers.origin;

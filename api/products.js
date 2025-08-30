@@ -3,14 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 export default async function handler(req, res) {
-  // Headers CORS más específicos
-  const allowedOrigins = ['http://localhost:3000', 'https://admin-panel-tawny-seven.vercel.app'];
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
+  // Headers CORS siempre presentes
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -134,23 +128,9 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    // Extraer ID de la URL de varias maneras posibles
-    let id = req.query.id;
-    
-    // Si no está en query, intentar extraerlo de la URL
-    if (!id && req.url) {
-      const urlParts = req.url.split('/');
-      // La URL será algo como /896413ba-fe91-44e6-9a0a-24c7ac28a4a4
-      const potentialId = urlParts[urlParts.length - 1];
-      if (potentialId && potentialId !== 'products') {
-        id = potentialId;
-      }
-    }
-    
-    console.log('DELETE request - ID extracted:', id);
-    console.log('DELETE request - URL:', req.url);
-    console.log('DELETE request - Query:', req.query);
-    
+    // El id ya viene en req.query.id por la ruta explícita
+    const id = req.query.id;
+    console.log('DELETE request - ID:', id);
     if (!id) {
       return res.status(400).json({ error: 'ID de producto no proporcionado' });
     }

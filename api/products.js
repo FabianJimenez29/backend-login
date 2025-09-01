@@ -24,8 +24,7 @@ export default async function handler(req, res) {
         price,
         stock,
         category_id,
-        image_url,
-        image_path
+        image_url
       } = req.body;
 
       // Verificamos si hay campos obligatorios vacíos
@@ -47,8 +46,7 @@ export default async function handler(req, res) {
         price: parseFloat(price),
         stock: parseInt(stock) || 0,
         category_id: category_id || null,
-        image_url: image_url || null,
-        image_path: image_path || null
+        image_url: image_url || null
       };
 
       console.log('Insertando producto:', productData);
@@ -107,8 +105,7 @@ export default async function handler(req, res) {
       price,
       stock,
       category_id,
-      image_url,
-      image_path
+      image_url
     } = req.body;
 
     if (!name || price === undefined) {
@@ -130,7 +127,6 @@ export default async function handler(req, res) {
         stock: parseInt(stock) || 0,
         category_id,
         image_url: image_url || null,
-        image_path: image_path || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -173,24 +169,7 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Producto no encontrado' });
       }
       
-      // Si el producto tiene una imagen en Supabase Storage, eliminarla
-      if (product.image_path) {
-        try {
-          const { error: storageError } = await supabase
-            .storage
-            .from('images')
-            .remove([product.image_path]);
-            
-          if (storageError) {
-            console.error('Error al eliminar imagen de Storage:', storageError);
-            // No bloqueamos el proceso si falla la eliminación de la imagen
-          }
-        } catch (err) {
-          console.error('Error al eliminar imagen:', err);
-        }
-      }
-      
-      // Luego eliminamos el producto
+      // Eliminar el producto directamente (sin manejo de imágenes de storage por ahora)
       const { error: deleteError } = await supabase
         .from('products')
         .delete()

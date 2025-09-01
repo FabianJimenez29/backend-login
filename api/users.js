@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   // GET - Obtener administradores
   if (req.method === "GET") {
     try {
-      // Verificar autenticación - Solo verificamos si hay token, pero no lo requerimos
+      
       const authHeader = req.headers.authorization;
       let userId = null;
       

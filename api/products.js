@@ -146,59 +146,70 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    // El id ya viene en req.query.id por la ruta explícita
-    const id = req.query.id;
-    console.log('DELETE request - ID:', id);
-    if (!id) {
-      return res.status(400).json({ error: 'ID de producto no proporcionado' });
-    }
-    
-    // Primero obtenemos el producto para devolverlo en la respuesta
-    const { data: product, error: fetchError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (fetchError) {
-      return res.status(400).json({ error: fetchError.message });
-    }
-    
-    if (!product) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
-    }
-    
-    // Si el producto tiene una imagen en Supabase Storage, eliminarla
-    if (product.image_path) {
-      try {
-        const { error: storageError } = await supabase
-          .storage
-          .from('images')
-          .remove([product.image_path]);
-          
-        if (storageError) {
-          console.error('Error al eliminar imagen de Storage:', storageError);
-          // No bloqueamos el proceso si falla la eliminación de la imagen
-        }
-      } catch (err) {
-        console.error('Error al eliminar imagen:', err);
+    try {
+      // Obtener el ID desde el query string (?id=...) o desde el cuerpo de la petición
+      const id = req.query.id || req.body.id;
+      console.log('DELETE request - ID:', id);
+      console.log('Query params:', req.query);
+      console.log('Request body:', req.body);
+      
+      if (!id) {
+        return res.status(400).json({ error: 'ID de producto no proporcionado' });
       }
+      
+      // Primero obtenemos el producto para devolverlo en la respuesta
+      const { data: product, error: fetchError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error al obtener producto:', fetchError);
+        return res.status(400).json({ error: fetchError.message });
+      }
+      
+      if (!product) {
+        return res.status(404).json({ error: 'Producto no encontrado' });
+      }
+      
+      // Si el producto tiene una imagen en Supabase Storage, eliminarla
+      if (product.image_path) {
+        try {
+          const { error: storageError } = await supabase
+            .storage
+            .from('images')
+            .remove([product.image_path]);
+            
+          if (storageError) {
+            console.error('Error al eliminar imagen de Storage:', storageError);
+            // No bloqueamos el proceso si falla la eliminación de la imagen
+          }
+        } catch (err) {
+          console.error('Error al eliminar imagen:', err);
+        }
+      }
+      
+      // Luego eliminamos el producto
+      const { error: deleteError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      
+      if (deleteError) {
+        console.error('Error al eliminar producto:', deleteError);
+        return res.status(400).json({ error: deleteError.message });
+      }
+      
+      console.log('Producto eliminado exitosamente:', product.name);
+      return res.status(200).json({ 
+        message: 'Producto eliminado correctamente',
+        product 
+      });
+    } catch (error) {
+      console.error('Error general al eliminar producto:', error);
+      return res.status(500).json({ error: 'Error interno del servidor' });
     }
-    
-    // Luego eliminamos el producto
-    const { error: deleteError } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
-    
-    if (deleteError) {
-      return res.status(400).json({ error: deleteError.message });
-    }
-    
-    return res.status(200).json({ 
-      message: 'Producto eliminado correctamente',
-      product 
-    });
   }
 
   return res.status(405).json({ error: 'Método no permitido' });

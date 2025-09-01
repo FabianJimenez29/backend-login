@@ -15,42 +15,60 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const {
-      name,
-      description,
-      price,
-      stock,
-      category_id,
-      image_url,
-      image_path
-    } = req.body;
+    try {
+      console.log('POST request body:', req.body);
+      
+      const {
+        name,
+        description,
+        price,
+        stock,
+        category_id,
+        image_url,
+        image_path
+      } = req.body;
 
-    // Verificamos si hay campos obligatorios vacíos
-    if (!name || price === undefined) {
-      return res.status(400).json({
-        error: "Campos obligatorios faltantes",
-        missing: {
-          name: !name,
-          price: price === undefined
-        }
-      });
-    }
+      // Verificamos si hay campos obligatorios vacíos
+      if (!name || price === undefined || price === null) {
+        console.log('Campos faltantes:', { name: !!name, price: price !== undefined });
+        return res.status(400).json({
+          error: "Campos obligatorios faltantes",
+          missing: {
+            name: !name,
+            price: price === undefined || price === null
+          },
+          received: { name, price, description, stock, category_id }
+        });
+      }
 
-    const { data, error } = await supabase
-      .from('products')
-      .insert([{
+      const productData = {
         name,
         description: description || '',
         price: parseFloat(price),
         stock: parseInt(stock) || 0,
-        category_id,
+        category_id: category_id || null,
         image_url: image_url || null,
         image_path: image_path || null
-      }])
-      .select();
+      };
 
-    if (error) return res.status(400).json({ error: error.message });
-    return res.status(201).json(data[0]);
+      console.log('Insertando producto:', productData);
+
+      const { data, error } = await supabase
+        .from('products')
+        .insert([productData])
+        .select();
+
+      if (error) {
+        console.error('Error de Supabase:', error);
+        return res.status(400).json({ error: error.message, details: error });
+      }
+      
+      console.log('Producto creado exitosamente:', data[0]);
+      return res.status(201).json(data[0]);
+    } catch (err) {
+      console.error('Error general en POST:', err);
+      return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
+    }
   }
 
   if (req.method === 'GET') {

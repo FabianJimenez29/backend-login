@@ -95,7 +95,12 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'PUT') {
-    const id = req.query.id;
+    // Obtener ID de query parameter o de la URL
+    const id = req.query.id || req.url?.split('/').pop();
+    
+    console.log('PUT request - ID from query:', req.query.id);
+    console.log('PUT request - ID from URL:', req.url?.split('/').pop());
+    console.log('PUT request - Final ID:', id);
     
     if (!id) {
       return res.status(400).json({ error: 'ID de producto no proporcionado' });

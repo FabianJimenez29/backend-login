@@ -12,7 +12,6 @@ import quotesRouter from './api/quotes.js';
 import availabilityRouter from './api/availability.js';
 import promotionsRouter from './api/promotions.js';
 import bannerImagesRouter from './api/banner-images.js';
-import uploadImageRouter from './api/upload-image.js';
 import productsHandler from './api/products.js';
 import categoriesHandler from './api/categories.js';
 
@@ -59,7 +58,6 @@ app.use('/api/quotes', quotesRouter);
 app.use('/api/availability', availabilityRouter);
 app.use('/api/promotions', promotionsRouter);
 app.use('/api/banner-images', bannerImagesRouter);
-app.use('/api/upload-image', uploadImageRouter);
 
 // Ruta de productos usando el handler de Supabase
 // Rutas explícitas para productos
@@ -167,13 +165,13 @@ app.post('/api/products/upload-image', upload.single('image'), async (req, res) 
     const fileName = `${uuidv4()}${fileExt}`;
     const filePath = `products/${fileName}`;
     
-    console.log('Subiendo a Supabase bucket "product-images", ruta:', filePath);
+    console.log('Subiendo a Supabase bucket "images", ruta:', filePath);
     console.log('Supabase URL:', process.env.SUPABASE_URL);
     
     // Subir archivo a Supabase Storage
     const { data, error } = await supabase
       .storage
-      .from('product-images') // Cambiado de 'images' a 'product-images'
+      .from('images') // Nombre del bucket en Supabase
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
         upsert: true // Usar upsert para sobrescribir si existe

@@ -24,7 +24,8 @@ export default async function handler(req, res) {
         price,
         stock,
         category_id,
-        image_url
+        image_url,
+        image_path
       } = req.body;
 
       // Verificamos si hay campos obligatorios vacíos
@@ -46,7 +47,8 @@ export default async function handler(req, res) {
         price: parseFloat(price),
         stock: parseInt(stock) || 0,
         category_id: category_id || null,
-        image_url: image_url || null
+        image_url: image_url || null,
+        image_path: image_path || null
       };
 
       console.log('Insertando producto:', productData);
@@ -105,7 +107,8 @@ export default async function handler(req, res) {
       price,
       stock,
       category_id,
-      image_url
+      image_url,
+      image_path
     } = req.body;
 
     if (!name || price === undefined) {
@@ -127,6 +130,7 @@ export default async function handler(req, res) {
         stock: parseInt(stock) || 0,
         category_id,
         image_url: image_url || null,
+        image_path: image_path || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

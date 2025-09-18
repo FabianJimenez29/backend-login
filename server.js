@@ -167,13 +167,13 @@ app.post('/api/products/upload-image', upload.single('image'), async (req, res) 
     const fileName = `${uuidv4()}${fileExt}`;
     const filePath = `products/${fileName}`;
     
-    console.log('Subiendo a Supabase bucket "images", ruta:', filePath);
+    console.log('Subiendo a Supabase bucket "product-images", ruta:', filePath);
     console.log('Supabase URL:', process.env.SUPABASE_URL);
     
     // Subir archivo a Supabase Storage
     const { data, error } = await supabase
       .storage
-      .from('images') // Nombre del bucket en Supabase
+      .from('product-images') // Cambiado de 'images' a 'product-images'
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
         upsert: true // Usar upsert para sobrescribir si existe

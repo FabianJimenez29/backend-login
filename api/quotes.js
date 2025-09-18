@@ -10,11 +10,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Eliminar citas viejas (más de 1 día)
-  await supabase
-    .from('quotes')
-    .delete()
-    .lt('fecha', new Date().toISOString().slice(0, 10));
+  // COMENTADO: No eliminar citas automáticamente - el admin panel debe ver todas las citas
+  // await supabase
+  //   .from('quotes')
+  //   .delete()
+  //   .lt('fecha', new Date().toISOString().slice(0, 10));
 
   if (req.method === 'POST') {
     const {
@@ -74,12 +74,19 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    const date = req.query.date || new Date().toISOString().slice(0, 10);
-    const { data, error } = await supabase
+    const date = req.query.date;
+    
+    let query = supabase
       .from('quotes')
-      .select('*')
-      .eq('fecha', date)
-      .order('hora', { ascending: true });
+      .select('*');
+    
+    // Si se especifica una fecha, filtrar por esa fecha
+    // Si no se especifica fecha, devolver todas las citas (para admin panel)
+    if (date) {
+      query = query.eq('fecha', date);
+    }
+    
+    const { data, error } = await query.order('fecha', { ascending: false });
       
     if (error) return res.status(400).json({ error: error.message });
     

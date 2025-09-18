@@ -10,11 +10,26 @@ const router = express.Router();
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
+console.log('🔍 Environment check:', {
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseKey,
+  nodeEnv: process.env.NODE_ENV
+});
+
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Supabase configuration missing');
+  console.error('❌ Supabase configuration missing:', {
+    SUPABASE_URL: supabaseUrl ? 'present' : 'missing',
+    SUPABASE_KEY: supabaseKey ? 'present' : 'missing'
+  });
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+let supabase;
+try {
+  supabase = createClient(supabaseUrl || '', supabaseKey || '');
+  console.log('✅ Supabase client created');
+} catch (error) {
+  console.error('❌ Error creating Supabase client:', error);
+}
 
 // Configurar multer para manejar archivos en memoria
 const storage = multer.memoryStorage();
@@ -47,6 +62,13 @@ router.post('/', upload.single('image'), async (req, res) => {
 
   try {
     console.log('📁 Recibiendo solicitud de subida de imagen...');
+    
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Servicio de almacenamiento no disponible'
+      });
+    }
     
     if (!req.file) {
       return res.status(400).json({
@@ -127,6 +149,13 @@ router.delete('/', async (req, res) => {
     
     console.log('🗑️ Eliminando imagen:', imagePath);
     
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Servicio de almacenamiento no disponible'
+      });
+    }
+    
     if (!imagePath) {
       return res.status(400).json({
         success: false,
@@ -161,6 +190,16 @@ router.delete('/', async (req, res) => {
       message: `Error interno del servidor: ${error.message}`
     });
   }
+});
+
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Upload image service is running',
+    hasSupabase: !!supabase,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Manejar OPTIONS requests (preflight)

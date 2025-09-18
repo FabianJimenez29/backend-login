@@ -36,6 +36,15 @@ const upload = multer({
 
 // Endpoint para subir imagen
 router.post('/', upload.single('image'), async (req, res) => {
+  // Configurar CORS headers
+  const origin = req.headers.origin;
+  if (origin === 'https://admin-panel-three-lilac.vercel.app' || origin === 'http://localhost:3000') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
   try {
     console.log('📁 Recibiendo solicitud de subida de imagen...');
     
@@ -104,6 +113,15 @@ router.post('/', upload.single('image'), async (req, res) => {
 
 // Endpoint para eliminar imagen
 router.delete('/', async (req, res) => {
+  // Configurar CORS headers
+  const origin = req.headers.origin;
+  if (origin === 'https://admin-panel-three-lilac.vercel.app' || origin === 'http://localhost:3000') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
   try {
     const { imagePath } = req.body;
     
@@ -143,6 +161,18 @@ router.delete('/', async (req, res) => {
       message: `Error interno del servidor: ${error.message}`
     });
   }
+});
+
+// Manejar OPTIONS requests (preflight)
+router.options('/', (req, res) => {
+  const origin = req.headers.origin;
+  if (origin === 'https://admin-panel-three-lilac.vercel.app' || origin === 'http://localhost:3000') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
 });
 
 export default router;

@@ -12,6 +12,7 @@ import quotesRouter from './api/quotes.js';
 import availabilityRouter from './api/availability.js';
 import promotionsRouter from './api/promotions.js';
 import bannerImagesRouter from './api/banner-images.js';
+import uploadImageRouter from './api/upload-image.js';
 import productsHandler from './api/products.js';
 import categoriesHandler from './api/categories.js';
 
@@ -58,6 +59,7 @@ app.use('/api/quotes', quotesRouter);
 app.use('/api/availability', availabilityRouter);
 app.use('/api/promotions', promotionsRouter);
 app.use('/api/banner-images', bannerImagesRouter);
+app.use('/api/upload-image', uploadImageRouter);
 
 // Ruta de productos usando el handler de Supabase
 // Rutas explícitas para productos

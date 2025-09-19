@@ -15,11 +15,12 @@ export default async function handler(req, res) {
   const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-  // GET - Obtener administradores
+  // GET - Obtener usuarios
   if (req.method === "GET") {
     try {
       
       const authHeader = req.headers.authorization;
+      const { role } = req.query; // Permitir filtrar por rol
       let userId = null;
       
       if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -37,19 +38,27 @@ export default async function handler(req, res) {
         }
       }
 
-      // Obtener usuarios con rol admin
-      const { data, error } = await supabase
+      let query = supabase
         .from("users")
-        .select("id, full_name, email, phone, provincia, canton, distrito, created_at, role")
-        .eq("role", "admin");
+        .select("id, full_name, email, phone, provincia, canton, distrito, created_at, role");
+
+      // Filtrar por rol si se especifica
+      if (role) {
+        query = query.eq("role", role);
+      } else {
+        // Por defecto, obtener solo admins para compatibilidad hacia atrás
+        query = query.eq("role", "admin");
+      }
+
+      const { data, error } = await query;
 
       if (error) {
-        console.error("❌ Error obteniendo administradores:", error);
-        return res.status(500).json({ error: "Error obteniendo administradores" });
+        console.error("❌ Error obteniendo usuarios:", error);
+        return res.status(500).json({ error: "Error obteniendo usuarios" });
       }
 
       // Transformar datos para que coincidan con el formato esperado en el frontend
-      const admins = data.map(user => ({
+      const users = data.map(user => ({
         id: user.id,
         nombre: user.full_name,
         email: user.email,
@@ -64,11 +73,11 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ 
         success: true,
-        data: admins
+        data: users
       });
 
     } catch (error) {
-      console.error("❌ Error en API de administradores:", error);
+      console.error("❌ Error en API de usuarios:", error);
       return res.status(500).json({ 
         error: "Error interno del servidor",
         details: error.message
@@ -76,13 +85,21 @@ export default async function handler(req, res) {
     }
   }
 
-  // POST - Crear administrador
+  // POST - Crear usuario
   if (req.method === "POST") {
     try {
-      const { nombre, email, password, telefono, provincia, canton, distrito } = req.body;
+      const { nombre, email, password, telefono, provincia, canton, distrito, rol } = req.body;
 
       if (!nombre || !email || !password) {
         return res.status(400).json({ error: "Nombre, email y contraseña son requeridos" });
+      }
+
+      // Validar rol
+      const validRoles = ['superAdmin', 'Admin', 'Tecnico'];
+      const userRole = rol || 'Admin'; // Default a Admin para compatibilidad
+      
+      if (!validRoles.includes(userRole)) {
+        return res.status(400).json({ error: "Rol inválido. Debe ser: superAdmin, Admin o Tecnico" });
       }
 
       // Verificar si el email ya existe
@@ -100,7 +117,7 @@ export default async function handler(req, res) {
       const saltRounds = 10;
       const password_hash = await bcrypt.hash(password, saltRounds);
 
-      // Crear el administrador
+      // Crear el usuario
       const { data, error } = await supabase
         .from("users")
         .insert({
@@ -111,18 +128,18 @@ export default async function handler(req, res) {
           provincia: provincia || null,
           canton: canton || null,
           distrito: distrito || null,
-          role: "admin"
+          role: userRole.toLowerCase() // Guardar en minúsculas en la BD
         })
         .select()
         .single();
 
       if (error) {
-        console.error("❌ Error creando administrador:", error);
-        return res.status(500).json({ error: "Error creando administrador" });
+        console.error("❌ Error creando usuario:", error);
+        return res.status(500).json({ error: "Error creando usuario" });
       }
 
       // Transformar datos para la respuesta
-      const admin = {
+      const user = {
         id: data.id,
         nombre: data.full_name,
         email: data.email,
@@ -137,12 +154,12 @@ export default async function handler(req, res) {
 
       return res.status(201).json({
         success: true,
-        data: admin,
-        message: "Administrador creado exitosamente"
+        data: user,
+        message: "Usuario creado exitosamente"
       });
 
     } catch (error) {
-      console.error("❌ Error creando administrador:", error);
+      console.error("❌ Error creando usuario:", error);
       return res.status(500).json({ 
         error: "Error interno del servidor",
         details: error.message

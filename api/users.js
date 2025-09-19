@@ -46,8 +46,8 @@ export default async function handler(req, res) {
       if (role) {
         query = query.eq("role", role);
       } else {
-        // Por defecto, obtener solo admins para compatibilidad hacia atrás
-        query = query.eq("role", "admin");
+        // Obtener TODOS los usuarios EXCEPTO los que tienen rol 'user'
+        query = query.neq("role", "user");
       }
 
       const { data, error } = await query;

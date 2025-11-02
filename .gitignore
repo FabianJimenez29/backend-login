@@ -6,11 +6,9 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Environment variables
-.env
-.env.local
-.env.production
-.env.development
-.env.test
+*.env
+*.env.local
+
 
 # Runtime data
 pids/
